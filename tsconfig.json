@@ -19,7 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"],
+      "@componentes/*": ["./src/componentes/*"],
+      "@acciones/*": ["./src/acciones/*"],
+      "@bibliotecas/*": ["./src/bibliotecas/*"],
+      "@tipos/*": ["./src/tipos/*"]
     }
   },
   "include": [

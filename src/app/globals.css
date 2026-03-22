@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* 1. Reset base */
+:root {
+  background-color: white;
+  color: black;
+}
+
+/* 2. Regla manual infalible para Modo Oscuro */
+.dark {
+  background-color: #0a0a0a !important;
+  color: white !important;
+}
+
+/* 3. Forzamos a que los componentes con clases dark: funcionen */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 4. Estilos globales para evitar parches blancos */
+body {
+  @apply min-h-screen transition-colors duration-500;
+  background-color: inherit;
+  color: inherit;
+}

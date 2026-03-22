@@ -1,0 +1,1 @@
+Definiciones de TypeScript (Moldes).
