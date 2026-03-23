@@ -143,7 +143,7 @@ export default function DetalleProducto() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] text-black dark:text-white transition-colors duration-500">
       
-      <nav className="p-6 flex justify-between items-center max-w-7xl mx-auto border-b border-gray-100 dark:border-zinc-900 sticky top-0 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md z-50">
+      <nav className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 max-w-7xl mx-auto border-b border-gray-100 dark:border-zinc-900 sticky top-0 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-md z-50">
         <Link href="/" className="font-black italic text-xl uppercase tracking-tighter hover:opacity-70 transition">
           Vintage<span className="text-blue-600">.</span>Lab
         </Link>
@@ -255,7 +255,7 @@ export default function DetalleProducto() {
                 </span>
               )}
             </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight mb-4 uppercase italic">
+            <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-tight mb-4 uppercase italic break-words">
               {producto.nombre}
             </h1>
             <div className="flex items-end gap-4">

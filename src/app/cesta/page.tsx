@@ -100,7 +100,7 @@ export default function Cesta() {
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] text-black dark:text-white transition-colors duration-500 flex flex-col">
       
       {/* NAVBAR */}
-      <nav className="p-6 flex justify-between items-center max-w-5xl mx-auto w-full border-b border-gray-100 dark:border-zinc-900">
+      <nav className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 max-w-5xl mx-auto w-full border-b border-gray-100 dark:border-zinc-900">
         <Link href="/" className="font-black italic text-xl uppercase tracking-tighter hover:opacity-70 transition">
           Vintage<span className="text-blue-600">.</span>Lab
         </Link>
@@ -113,7 +113,7 @@ export default function Cesta() {
       </nav>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-12 md:py-20">
-        <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic mb-12">Tu Cesta</h1>
+        <h1 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic mb-12 text-center sm:text-left">Tu Cesta</h1>
 
         {cesta.length === 0 ? (
           <div className="text-center py-32 border-2 border-dashed border-gray-100 dark:border-zinc-900 rounded-[3rem]">
@@ -128,8 +128,8 @@ export default function Cesta() {
             {/* LISTA DE ARTÍCULOS */}
             <div className="lg:col-span-2 space-y-6">
               {cesta.map((item) => (
-                <div key={item.id} className="flex gap-6 items-center p-4 md:p-6 bg-[#f9f9f9] dark:bg-zinc-900/50 rounded-[2rem] border border-gray-100 dark:border-zinc-800">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden bg-white dark:bg-zinc-800 flex-shrink-0">
+                <div key={item.id} className="flex flex-col sm:flex-row gap-6 items-center text-center sm:text-left p-4 md:p-6 bg-[#f9f9f9] dark:bg-zinc-900/50 rounded-[2rem] border border-gray-100 dark:border-zinc-800">
+                  <div className="w-32 h-32 md:w-32 md:h-32 rounded-2xl overflow-hidden bg-white dark:bg-zinc-800 flex-shrink-0">
                     <img src={item.imagen || '/placeholder.png'} alt={item.nombre} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1">
@@ -139,9 +139,9 @@ export default function Cesta() {
                   </div>
                   <button 
                     onClick={() => eliminarItem(item.id)}
-                    className="w-10 h-10 flex items-center justify-center bg-white dark:bg-black rounded-full text-red-500 hover:bg-red-500 hover:text-white transition shadow-sm"
+                    className="w-full sm:w-10 h-12 sm:h-10 flex items-center justify-center bg-white dark:bg-black rounded-xl sm:rounded-full text-red-500 hover:bg-red-500 hover:text-white transition shadow-sm mt-4 sm:mt-0 font-black text-xs uppercase sm:text-lg sm:normal-case"
                   >
-                    ✕
+                    <span className="sm:hidden">Eliminar</span><span className="hidden sm:inline">✕</span>
                   </button>
                 </div>
               ))}

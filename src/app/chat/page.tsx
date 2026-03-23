@@ -146,11 +146,11 @@ function ChatContent() {
         <div className="bg-gray-50/90 dark:bg-zinc-900/90 p-4 border-b border-gray-100 dark:border-zinc-800 flex items-center gap-4 z-0 backdrop-blur-md shadow-sm">
           <img src={productoInfo.imagen_url || '/placeholder.png'} className="w-14 h-14 rounded-xl object-cover shadow-sm" alt="Producto" />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold truncate dark:text-gray-200">{productoInfo.nombre}</p>
-            <p className="text-[10px] font-black italic text-gray-500 mt-1">{productoInfo.precio}€</p>
+            <p className="text-[10px] md:text-xs font-bold truncate dark:text-gray-200">{productoInfo.nombre}</p>
+            <p className="text-[8px] md:text-[10px] font-black italic text-gray-500 mt-0.5">{productoInfo.precio}€</p>
           </div>
-          <Link href={`/producto/${productoInfo.id}`} className="bg-green-600 text-white px-5 py-2.5 rounded-full text-[9px] font-black shadow-lg shadow-green-500/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest flex-shrink-0">
-            Negociar / Comprar
+          <Link href={`/producto/${productoInfo.id}`} className="bg-green-600 text-white px-3 md:px-5 py-2 md:py-2.5 rounded-full text-[8px] md:text-[9px] font-black shadow-lg shadow-green-500/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest flex-shrink-0">
+            Comprar
           </Link>
         </div>
       )}
@@ -192,7 +192,7 @@ function ChatContent() {
           />
           <button 
             type="submit" 
-            className="bg-black dark:bg-white text-white dark:text-black px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+            className="bg-black dark:bg-white text-white dark:text-black px-5 md:px-8 py-4 rounded-full font-black text-[9px] md:text-[10px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
           >
             Enviar
           </button>

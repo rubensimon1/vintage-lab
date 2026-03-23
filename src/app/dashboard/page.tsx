@@ -188,15 +188,19 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f8] dark:bg-[#070707] text-black dark:text-white transition-colors duration-500">
-      
-      <header className="border-b border-gray-100 dark:border-zinc-900 bg-white/80 dark:bg-[#070707]/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-gray-400">← Tienda</Link>
-            <h1 className="font-black italic text-xl tracking-tighter uppercase">Panel<span className="text-blue-600">.</span>Lab</h1>
+      <header className="border-b border-gray-100 dark:border-zinc-900 bg-white/80 dark:bg-[#070707]/80 backdrop-blur-md sticky top-0 z-50 px-4 py-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+          <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+            <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">← Tienda</Link>
+            <h1 className="font-black italic text-xl tracking-tighter uppercase whitespace-nowrap">Panel<span className="text-blue-600">.</span>Lab</h1>
+            <div className="sm:hidden flex items-center gap-3">
+              <ThemeToggle />
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
+          <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto justify-center sm:justify-end">
+            <div className="hidden sm:block">
+               <ThemeToggle />
+            </div>
             <Link href="/dashboard/notificaciones" className="relative p-2.5 bg-gray-100 dark:bg-zinc-900 rounded-full hover:scale-105 transition">
               <span className="text-lg">🔔</span>
               {notificacionesNoLeidas > 0 && (
@@ -205,7 +209,7 @@ export default function Dashboard() {
                 </span>
               )}
             </Link>
-            <Link href="/dashboard/nuevo-producto" className="bg-blue-600 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest">+ Nuevo Item</Link>
+            <Link href="/dashboard/nuevo-producto" className="flex-1 sm:flex-none text-center bg-blue-600 text-white px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20">+ Nuevo Item</Link>
           </div>
         </div>
       </header>
@@ -213,23 +217,23 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 py-12 md:py-16">
         
         {/* INDICADORES */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm">
-            <p className="text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Ingresos</p>
-            <h3 className="text-4xl font-black italic tracking-tighter">{stats.ingresos}€</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
+          <div className="bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm">
+            <p className="text-[9px] md:text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Ingresos</p>
+            <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter">{stats.ingresos}€</h3>
           </div>
-          <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm">
-            <p className="text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Ventas</p>
-            <h3 className="text-4xl font-black italic tracking-tighter">{stats.ventasContador}</h3>
+          <div className="bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm">
+            <p className="text-[9px] md:text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Ventas</p>
+            <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter">{stats.ventasContador}</h3>
           </div>
-          <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm">
-            <p className="text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Valor Stock</p>
-            <h3 className="text-4xl font-black italic tracking-tighter">{stats.valorStock}€</h3>
+          <div className="bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm">
+            <p className="text-[9px] md:text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Valor Stock</p>
+            <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter">{stats.valorStock}€</h3>
           </div>
-          <Link href="/dashboard/mensajes" className="bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl hover:scale-105 transition-all group">
-            <p className="text-[10px] font-black uppercase opacity-60 mb-2 italic tracking-widest group-hover:opacity-100">Conversaciones</p>
+          <Link href="/dashboard/mensajes" className="bg-blue-600 text-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl hover:scale-105 transition-all group">
+            <p className="text-[9px] md:text-[10px] font-black uppercase opacity-60 mb-2 italic tracking-widest group-hover:opacity-100">Conversaciones</p>
             <div className="flex justify-between items-center">
-              <h3 className="text-4xl font-black italic tracking-tighter">Inbox</h3>
+              <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter">Inbox</h3>
               {mensajesNuevos > 0 && <span className="bg-white text-blue-600 text-[10px] font-black px-3 py-1 rounded-full animate-bounce">{mensajesNuevos}</span>}
             </div>
           </Link>

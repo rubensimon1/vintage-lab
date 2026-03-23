@@ -213,13 +213,13 @@ export default function PerfilTienda() {
       
       {/* NAVBAR */}
       <nav className="border-b border-gray-100 dark:border-zinc-900 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 w-full">
           <Link href="/" className="text-xl md:text-2xl font-black tracking-tighter uppercase italic flex-shrink-0 hover:opacity-70 transition">
             VINTAGE<span className="text-blue-600">.</span>LAB
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full sm:w-auto justify-center sm:justify-end">
             <ThemeToggle />
-            <Link href="/" className="text-[10px] font-black bg-black dark:bg-white text-white dark:text-black px-5 py-2.5 rounded-full uppercase tracking-widest hover:scale-105 transition">
+            <Link href="/" className="flex-1 sm:flex-none text-center text-[10px] font-black bg-black dark:bg-white text-white dark:text-black px-5 py-2.5 rounded-full uppercase tracking-widest hover:scale-105 transition">
               Explorar Todo
             </Link>
           </div>

@@ -69,7 +69,7 @@ export default function ComunidadPage() {
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] text-black dark:text-white transition-colors duration-500">
       
       {/* NAVBAR */}
-      <nav className="p-6 flex justify-between items-center max-w-7xl mx-auto border-b border-gray-100 dark:border-zinc-900 sticky top-0 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md z-50">
+      <nav className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 max-w-7xl mx-auto border-b border-gray-100 dark:border-zinc-900 sticky top-0 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md z-50">
         <div className="flex items-center gap-4">
           <Link href="/" className="font-black italic text-xl uppercase tracking-tighter hover:opacity-70 transition">
             Vintage<span className="text-blue-600">.</span>Lab
@@ -96,8 +96,8 @@ export default function ComunidadPage() {
 
       {/* HERO SECTION */}
       <section className="text-center py-20 px-6 max-w-4xl mx-auto">
-         <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter mb-6 leading-[0.85]">
-            GET <span className="text-blue-600">INSPIRED</span>
+         <h1 className="text-5xl md:text-8xl font-black italic uppercase tracking-tighter mb-6 leading-[0.85] break-words">
+            GET <span className="text-blue-600 block sm:inline">INSPIRED</span>
          </h1>
          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs max-w-lg mx-auto leading-relaxed">
             Descubre cómo nuestra comunidad combina las prendas de Vintage Lab. Inspírate, comparte tus mejores *fits* y construye tu marca personal.

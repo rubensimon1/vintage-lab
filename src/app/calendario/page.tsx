@@ -40,7 +40,7 @@ export default function DropCalendar() {
     <div className="min-h-screen bg-white dark:bg-[#050505] text-black dark:text-white transition-colors duration-500 font-sans">
       
       {/* NAVEGACIÓN */}
-      <nav className="p-6 flex justify-between items-center max-w-7xl mx-auto border-b border-gray-100 dark:border-zinc-900 sticky top-0 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-md z-50">
+      <nav className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 max-w-7xl mx-auto border-b border-gray-100 dark:border-zinc-900 sticky top-0 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-md z-50">
         <div className="flex items-center gap-4">
           <Link href="/" className="font-black italic text-xl uppercase tracking-tighter hover:opacity-70 transition">
             Vintage<span className="text-purple-600">.</span>Lab
@@ -62,8 +62,8 @@ export default function DropCalendar() {
            <span className="text-4xl block mb-2">🗓️</span>
            <p className="text-[9px] font-black tracking-widest uppercase text-purple-600 dark:text-purple-400">Próximos Lanzamientos</p>
          </div>
-         <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 leading-tight">
-            UPCOMING <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">DROPS</span>
+         <h1 className="text-4xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 leading-tight break-words">
+            UPCOMING <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 block sm:inline">DROPS</span>
          </h1>
          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs max-w-lg mx-auto leading-relaxed">
             Descubre los lanzamientos más exclusivos y los próximos Sorteos (Raffles) antes de que sucedan.
