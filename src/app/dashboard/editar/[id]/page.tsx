@@ -175,11 +175,11 @@ export default function EditarProducto() {
           </div>
 
           <div className="md:col-span-2 bg-white dark:bg-zinc-900/50 p-10 rounded-[3rem] border border-gray-100 dark:border-zinc-800 shadow-sm space-y-8">
-            <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="NOMBRE DEL PRODUCTO" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-blue-600 font-bold" required />
+            <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="NOMBRE DEL PRODUCTO" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 uppercase tracking-widest outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition shadow-sm" required />
             
             <div className="grid grid-cols-2 gap-6">
-              <input type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder="PRECIO (€)" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-blue-600 font-bold" required step="0.01" />
-              <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-blue-600 appearance-none text-gray-400 font-bold" required>
+              <input type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} placeholder="PRECIO (€)" className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 uppercase tracking-widest outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition shadow-sm" required step="0.01" />
+              <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black text-black dark:text-white uppercase tracking-widest outline-none focus:ring-2 focus:ring-black dark:focus:ring-white appearance-none transition shadow-sm" required>
                 <option value="" disabled>CATEGORÍA</option>
                 <option value="Sneakers">Sneakers</option>
                 <option value="Streetwear">Streetwear</option>
@@ -188,14 +188,14 @@ export default function EditarProducto() {
               </select>
             </div>
 
-            <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="DESCRIPCIÓN..." rows={5} className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-blue-600 font-bold" />
+            <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="DESCRIPCIÓN..." rows={5} className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-5 rounded-2xl text-[11px] font-black text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 uppercase tracking-widest outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition shadow-sm resize-none" />
 
             <button 
               type="submit" 
               disabled={actualizando}
-              className="w-full bg-blue-600 text-white py-6 rounded-3xl font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition disabled:opacity-50"
+              className="w-full bg-black dark:bg-white text-white dark:text-black py-6 rounded-3xl font-black text-xs uppercase tracking-[0.3em] shadow-2xl hover:scale-[1.02] active:scale-95 transition disabled:opacity-50"
             >
-              {actualizando ? 'SUBIENDO A "FOTOS"...' : 'Actualizar Producto'}
+              {actualizando ? 'PROCESANDO...' : 'Guardar Cambios'}
             </button>
           </div>
         </form>

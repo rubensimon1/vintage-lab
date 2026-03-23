@@ -15,6 +15,11 @@ export default function DetalleProducto() {
   const [precioOferta, setPrecioOferta] = useState('');
   const [enviandoOferta, setEnviandoOferta] = useState(false);
   const [historialPrecios, setHistorialPrecios] = useState<any[]>([]);
+  
+  // RAFFLES
+  const [participandoRaffle, setParticipandoRaffle] = useState(false);
+  const [participantesRaffle, setParticipantesRaffle] = useState(0);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -39,6 +44,21 @@ export default function DetalleProducto() {
         .order('fecha', { ascending: true });
       
       if (historial) setHistorialPrecios(historial);
+
+      // Raffles
+      if (data?.fecha_lanzamiento && new Date(data.fecha_lanzamiento) > new Date()) {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Count participants
+        const { count } = await supabase.from('raffles').select('*', { count: 'exact', head: true }).eq('id_producto', id);
+        setParticipantesRaffle(count || 0);
+
+        // Check if I am participating
+        if (user) {
+          const { data: miRaffle } = await supabase.from('raffles').select('id').eq('id_producto', id).eq('id_usuario', user.id).single();
+          if (miRaffle) setParticipandoRaffle(true);
+        }
+      }
 
       setCargando(false);
     }
@@ -246,6 +266,33 @@ export default function DetalleProducto() {
           </div>
 
           <div className="space-y-6 mb-12">
+            
+            {/* Si es Raffle, banner morado */}
+            {producto.fecha_lanzamiento && new Date(producto.fecha_lanzamiento) > new Date() && (
+              <div className="bg-purple-900 text-white p-4 rounded-3xl flex items-center justify-between border-2 border-dashed border-purple-500 shadow-xl shadow-purple-500/20">
+                <div>
+                  <p className="text-[10px] font-black uppercase text-purple-300 tracking-widest">🎟️ UPCOMING RAFFLE</p>
+                  <p className="text-xs font-bold mt-1">Precio Retail estimado</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-purple-300 italic leading-none">{producto.precio}€</p>
+                </div>
+              </div>
+            )}
+
+            {/* Si es subasta, mostramos banner especial arriba */}
+            {producto.es_subasta && (
+              <div className="bg-black text-white p-4 rounded-3xl flex items-center justify-between border-2 border-dashed border-gray-700">
+                <div>
+                  <p className="text-[10px] font-black uppercase text-blue-400 tracking-widest">En Subasta Activa 🔨</p>
+                  <p className="text-xs font-bold mt-1">Precio actual / puja más alta</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-blue-400 italic leading-none">{producto.precio}€</p>
+                </div>
+              </div>
+            )}
+
             {/* TALLA DESTACADA */}
             <div className="flex items-center gap-4">
               <div className="bg-gray-50 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-800 px-8 py-4 rounded-3xl">
@@ -283,20 +330,109 @@ export default function DetalleProducto() {
 
           {/* ACCIONES */}
           <div className="flex flex-col gap-4">
-            <button 
-              onClick={añadirACesta}
-              className="w-full bg-black dark:bg-white text-white dark:text-black py-7 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition active:scale-95 flex justify-center items-center gap-3"
-            >
-              <span>🛒</span> Añadir a la Cesta
-            </button>
+            
+            {producto.fecha_lanzamiento && new Date(producto.fecha_lanzamiento) > new Date() ? (
+              <div className="bg-purple-600 text-white p-6 rounded-[2rem] shadow-xl text-center shadow-purple-500/20">
+                <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">🔥 SORTEO / RAFFLE</p>
+                <p className="text-3xl font-black italic tracking-tighter mb-2">
+                  SE ABRE EN: {
+                    new Date(producto.fecha_lanzamiento) > new Date() 
+                    ? Math.floor((new Date(producto.fecha_lanzamiento).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) + 'd ' + Math.floor(((new Date(producto.fecha_lanzamiento).getTime() - Date.now()) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + 'h'
+                    : 'Ahorita'
+                  }
+                </p>
+                <p className="text-xs font-bold mb-6 text-purple-200">Participantes actuales: {participantesRaffle} 🎟️</p>
+                
+                {participandoRaffle ? (
+                  <div className="bg-white/20 py-4 rounded-xl flex items-center justify-center gap-2 border border-white/30 backdrop-blur-md">
+                    <span className="text-2xl">✅</span>
+                    <div className="text-left">
+                      <p className="text-[10px] font-black uppercase tracking-widest leading-none">Inscrito al Sorteo</p>
+                      <p className="text-[8px] font-bold text-purple-200">Te avisaremos si eres el ganador.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={async () => {
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if(!user) return alert("Inicia sesión para entrar al sorteo.");
+                      
+                      const { error } = await supabase.from('raffles').insert([{ id_producto: producto.id, id_usuario: user.id }]);
+                      if (error) {
+                        alert("Error al entrar al sorteo: " + error.message);
+                      } else {
+                        alert("¡Estás dentro del sorteo! Suerte 🍀");
+                        setParticipandoRaffle(true);
+                        setParticipantesRaffle(prev => prev + 1);
+                      }
+                    }}
+                    className="w-full bg-white text-purple-600 px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition flex justify-center items-center gap-2"
+                  >
+                    <span>🎰</span> Entrar al Sorteo ({producto.precio}€)
+                  </button>
+                )}
+              </div>
+            ) : producto.es_subasta ? (
+              <div className="bg-blue-600 text-white p-6 rounded-[2rem] shadow-xl text-center shadow-blue-500/20">
+                <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">🔨 TIEMPO RESTANTE</p>
+                <p className="text-4xl font-black italic tracking-tighter mb-6">
+                  {
+                    new Date(producto.fecha_fin_subasta) > new Date() 
+                    ? Math.floor((new Date(producto.fecha_fin_subasta).getTime() - Date.now()) / (1000 * 60 * 60)) + 'h ' + Math.floor(((new Date(producto.fecha_fin_subasta).getTime() - Date.now()) % (1000 * 60 * 60)) / (1000 * 60)) + 'm'
+                    : 'Finalizada'
+                  }
+                </p>
+                
+                {new Date(producto.fecha_fin_subasta) > new Date() ? (
+                  <div className="flex bg-white/10 p-2 rounded-2xl gap-2 border border-white/20 focus-within:border-white focus-within:bg-white/20 transition-all">
+                    <input 
+                      type="number" 
+                      min={Number(producto.precio) + 1}
+                      placeholder={`Min: ${(Number(producto.precio) + 1).toFixed(2)}€`}
+                      className="flex-1 bg-transparent text-white placeholder:text-white/50 px-4 font-black outline-none text-lg"
+                      id="input_puja"
+                    />
+                    <button 
+                      onClick={async () => {
+                        const pujaVal = (document.getElementById('input_puja') as HTMLInputElement).value;
+                        if(Number(pujaVal) <= Number(producto.precio)) return alert("La puja debe ser mayor al precio actual.");
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if(!user) return alert("Inicia sesión para pujar");
+                        
+                        await supabase.from('pujas').insert([{ id_producto: producto.id, id_usuario: user.id, cantidad: Number(pujaVal) }]);
+                        await supabase.from('productos').update({ precio: Number(pujaVal) }).eq('id', producto.id);
+                        alert(`¡Puja de ${pujaVal}€ realizada con éxito! 🔨`);
+                        window.location.reload();
+                      }}
+                      className="bg-white text-blue-600 px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:scale-105 active:scale-95 transition"
+                    >
+                      Pujar Ya
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-black/30 py-4 rounded-xl font-black text-xs uppercase tracking-widest">
+                    SUBASTA CERRADA
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button 
+                  onClick={añadirACesta}
+                  className="w-full bg-black dark:bg-white text-white dark:text-black py-7 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition active:scale-95 flex justify-center items-center gap-3"
+                >
+                  <span>🛒</span> Añadir a la Cesta
+                </button>
 
-            {/* BOTÓN HACER OFERTA */}
-            <button 
-              onClick={() => setMostrarOferta(!mostrarOferta)}
-              className="w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white py-6 rounded-[2rem] font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] transition active:scale-95 flex justify-center items-center gap-3 shadow-xl shadow-green-500/20"
-            >
-              <span>🤝</span> Hacer Oferta
-            </button>
+                {/* BOTÓN HACER OFERTA */}
+                <button 
+                  onClick={() => setMostrarOferta(!mostrarOferta)}
+                  className="w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white py-6 rounded-[2rem] font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] transition active:scale-95 flex justify-center items-center gap-3 shadow-xl shadow-green-500/20"
+                >
+                  <span>🤝</span> Hacer Oferta
+                </button>
+              </>
+            )}
 
             {/* PANEL DE OFERTA */}
             {mostrarOferta && (

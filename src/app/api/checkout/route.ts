@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: Request) {
   try {
-    const { items, email, descuento } = await request.json();
+    const { items, email, descuento, legitCheck } = await request.json();
 
     // 1. Transformamos los items de tu cesta al formato que exige Stripe
     const lineItems = items.map((item: any) => ({
@@ -23,6 +23,17 @@ export async function POST(request: Request) {
       },
       quantity: 1, // En tu marketplace cada item es único
     }));
+
+    if (legitCheck) {
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: '🔍 Autenticación Física Especializada (Legit Check)' },
+          unit_amount: 399, // 3.99€
+        },
+        quantity: 1,
+      });
+    }
 
     // Detectamos la URL base de tu web
     const origin = request.headers.get('origin') || 'http://localhost:3000';

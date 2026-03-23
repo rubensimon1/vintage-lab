@@ -26,3 +26,14 @@ body {
   background-color: inherit;
   color: inherit;
 }
+
+/* 5. Utilidad para ocultar barras de scroll pero permitir scroll (Showcase) */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE y Edge */
+    scrollbar-width: none;    /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari y Opera */
+  }
+}

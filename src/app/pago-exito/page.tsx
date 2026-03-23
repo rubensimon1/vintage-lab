@@ -31,12 +31,14 @@ export default function PagoExito() {
       
       if (user) {
         // 4. Creamos el PEDIDO en la base de datos
+        const isLegitCheck = localStorage.getItem('legitCheckStatus') === 'true';
         const { data: nuevoPedido, error: errorPedido } = await supabase
           .from('pedidos')
           .insert([{ 
             id_usuario: user.id, 
-            total: total,
-            estado: 'Preparando' // Empieza desde aquí para el Tracking
+            total: total + (isLegitCheck ? 3.99 : 0),
+            estado: 'Preparando', // Empieza desde aquí para el Tracking
+            legit_check: isLegitCheck
           }])
           .select()
           .single();
@@ -53,8 +55,9 @@ export default function PagoExito() {
         }
       }
 
-      // 6. Vaciamos la cesta porque ya está pagado
+      // 6. Vaciamos variables locales
       localStorage.removeItem('cesta');
+      localStorage.removeItem('legitCheckStatus');
 
       // 7. Usos de Cupón
       const cuponGuardado = localStorage.getItem('cuponAplicado');

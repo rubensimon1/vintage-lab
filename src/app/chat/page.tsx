@@ -16,6 +16,7 @@ function ChatContent() {
   const [mensajes, setMensajes] = useState<any[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [usuario, setUsuario] = useState<any>(null);
+  const [productoInfo, setProductoInfo] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -27,7 +28,13 @@ function ChatContent() {
       if (!user) return router.push('/login');
       setUsuario(user);
 
-      // 1. Cargar historial inicial
+      // 1. Cargar producto si existe
+      if (productoId) {
+        const { data: prod } = await supabase.from('productos').select('*').eq('id', productoId).single();
+        if (prod) setProductoInfo(prod);
+      }
+
+      // 2. Cargar historial inicial
       const { data } = await supabase
         .from('mensajes')
         .select('*')
@@ -37,7 +44,7 @@ function ChatContent() {
       if (data) setMensajes(data);
       setCargando(false);
 
-      // 2. CONFIGURACIÓN DEL CANAL (Realtime)
+      // 3. CONFIGURACIÓN DEL CANAL (Realtime)
       const nombreCanal = `chat_${[user.id, receptorId].sort().join('_')}`;
       
       canal = supabase
@@ -133,6 +140,20 @@ function ChatContent() {
         </div>
         <ThemeToggle />
       </div>
+
+      {/* Producto referenciado (si lo hay) */}
+      {productoInfo && (
+        <div className="bg-gray-50/90 dark:bg-zinc-900/90 p-4 border-b border-gray-100 dark:border-zinc-800 flex items-center gap-4 z-0 backdrop-blur-md shadow-sm">
+          <img src={productoInfo.imagen_url || '/placeholder.png'} className="w-14 h-14 rounded-xl object-cover shadow-sm" alt="Producto" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold truncate dark:text-gray-200">{productoInfo.nombre}</p>
+            <p className="text-[10px] font-black italic text-gray-500 mt-1">{productoInfo.precio}€</p>
+          </div>
+          <Link href={`/producto/${productoInfo.id}`} className="bg-green-600 text-white px-5 py-2.5 rounded-full text-[9px] font-black shadow-lg shadow-green-500/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest flex-shrink-0">
+            Negociar / Comprar
+          </Link>
+        </div>
+      )}
 
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#fcfcfc] dark:bg-[#0d0d0d] scrollbar-hide">

@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [cupones, setCupones] = useState<any[]>([]);
   const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
   const [nuevoCupon, setNuevoCupon] = useState({ codigo: '', descuento: 10 });
+  const [vendedorInfo, setVendedorInfo] = useState<any>(null);
   const router = useRouter();
 
 
@@ -38,6 +39,7 @@ export default function Dashboard() {
       .single();
 
     if (vendedor) {
+      setVendedorInfo(vendedor);
       const { data: prods } = await supabase
         .from('productos')
         .select('*')
@@ -285,6 +287,7 @@ export default function Dashboard() {
           <button onClick={() => setPestaña('compras')} className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest px-4 md:px-6 py-3 rounded-full transition-all flex-shrink-0 ${pestaña === 'compras' ? 'bg-green-600 text-white shadow-lg shadow-green-500/20' : 'text-gray-400'}`}>🛍️ Compras</button>
           <button onClick={() => setPestaña('cupones')} className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest px-4 md:px-6 py-3 rounded-full transition-all flex-shrink-0 ${pestaña === 'cupones' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' : 'text-gray-400'}`}>🏷️ Cupones</button>
           <button onClick={() => setPestaña('ofertas')} className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest px-4 md:px-6 py-3 rounded-full transition-all flex-shrink-0 ${pestaña === 'ofertas' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400'}`}>🤝 Ofertas{ofertas.filter(o => o.estado === 'pendiente').length > 0 ? ` (${ofertas.filter(o => o.estado === 'pendiente').length})` : ''}</button>
+          {vendedorInfo && <button onClick={() => router.push(`/tienda/${vendedorInfo.id}`)} className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest px-4 md:px-6 py-3 rounded-full transition-all flex-shrink-0 text-gray-400 hover:text-orange-500`}>⚙️ Editar Perfil Público</button>}
         </div>
 
         {/* CONTENIDOS */}
@@ -317,6 +320,32 @@ export default function Dashboard() {
                        <p className="text-[10px] text-gray-400 font-bold">{new Date(pedido.fecha).toLocaleDateString()} · {pedido.items.length} {pedido.items.length === 1 ? 'unidad' : 'unidades'}</p>
                      </div>
                      <div className="flex gap-2 flex-shrink-0">
+                       <button onClick={() => {
+                         const v = window.open('', '_blank');
+                         if(!v) return;
+                         v.document.write(`
+                           <html>
+                             <head><title>Etiqueta #${pedido.id}</title></head>
+                             <body style="font-family: sans-serif; padding: 40px; text-align: center;">
+                               <div style="border: 4px solid black; padding: 40px; max-width: 400px; margin: auto; text-align: left;">
+                                 <h1 style="font-size: 32px; margin-bottom: 0; text-transform: uppercase;">VINTAGE LAB</h1>
+                                 <p style="font-weight: bold; font-size: 14px; margin-top: 0; margin-bottom: 30px;">📦 EXPRESS MAIL</p>
+                                 <hr style="border: 2px solid black; margin-bottom: 20px;" />
+                                 <h3 style="margin-bottom: 5px;">ENVIAR A:</h3>
+                                 <p style="font-size: 20px; font-weight: bold; margin-top: 0;">Cliente Verificado</p>
+                                 <p style="font-size: 14px; margin-bottom: 30px;">ID TRANSACCIÓN: ${pedido.id}<br/>
+                                 ${pedido.legit_check ? '<strong style="color:red;">⚠️ ATENCIÓN: ENVIAR A OFICINAS PARA LEGIT CHECK</strong>' : 'Envio Directo Estandar'}
+                                 </p>
+                                 <hr style="border: 2px dashed black; margin-bottom: 20px;" />
+                                 <div style="padding: 20px; border: 2px solid black; text-align: center; font-family: monospace; font-size: 24px;">|||| ||||| ||||| |||| |||||</div>
+                               </div>
+                               <script>
+                                 window.print();
+                               </script>
+                             </body>
+                           </html>
+                         `);
+                       }} className="bg-black dark:bg-white text-white dark:text-black px-5 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-lg hover:scale-105 transition">🖨️ PDF Etiqueta</button>
                        {pedido.estado === 'Preparando' && <button onClick={() => actualizarEstadoPedido(pedido.id, 'Enviado')} className="bg-blue-600 text-white px-5 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:scale-105 transition">Marcar Enviado 📦</button>}
                        {pedido.estado === 'Enviado' && <button onClick={() => actualizarEstadoPedido(pedido.id, 'Entregado')} className="bg-green-600 text-white px-5 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-lg shadow-green-500/20 hover:scale-105 transition">Marcar Entregado ✓</button>}
                      </div>

@@ -9,6 +9,7 @@ export default function Cesta() {
   const [cesta, setCesta] = useState<any[]>([]);
   const [subtotal, setSubtotal] = useState(0);
   const [cargandoPago, setCargandoPago] = useState(false);
+  const [conLegitCheck, setConLegitCheck] = useState(false);
 
   // --- CUPONES ---
   const [codigoCupon, setCodigoCupon] = useState('');
@@ -57,7 +58,7 @@ export default function Cesta() {
   };
 
   const descuentoMonto = cuponAplicado ? (subtotal * (cuponAplicado.descuento / 100)) : 0;
-  const totalFinal = subtotal - descuentoMonto;
+  const totalFinal = subtotal - descuentoMonto + (conLegitCheck ? 3.99 : 0);
 
   // --- 🔥 CONEXIÓN CON STRIPE ---
   const procesarPagoStripe = async () => {
@@ -74,7 +75,8 @@ export default function Cesta() {
           items: cesta,
           email: user?.email || '', 
           cuponId: cuponAplicado?.id,
-          descuento: cuponAplicado ? cuponAplicado.descuento : 0
+          descuento: cuponAplicado ? cuponAplicado.descuento : 0,
+          legitCheck: conLegitCheck
         }),
       });
 
@@ -160,9 +162,9 @@ export default function Cesta() {
                     <span>-{descuentoMonto.toFixed(2)}€</span>
                   </div>
                 )}
-                <div className="flex justify-between">
+                <div className={`flex justify-between ${conLegitCheck ? 'text-black dark:text-white' : ''}`}>
                   <span>Autenticación</span>
-                  <span className="text-green-500">GRATIS</span>
+                  <span className={conLegitCheck ? "font-bold" : "text-green-500"}>{conLegitCheck ? '+3.99€' : 'GRATIS'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Envío Express</span>
@@ -186,6 +188,25 @@ export default function Cesta() {
                 >
                   {cargandoCupon ? '...' : 'Aplicar'}
                 </button>
+              </div>
+
+              {/* TOGGLE LEGIT CHECK */}
+              <div 
+                className={`border ${conLegitCheck ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10' : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-black'} p-4 rounded-xl mb-6 flex gap-3 items-start cursor-pointer transition`} 
+                onClick={() => {
+                  setConLegitCheck(!conLegitCheck);
+                  localStorage.setItem('legitCheckStatus', (!conLegitCheck).toString());
+                }}
+              >
+                <div className={`w-5 h-5 rounded-md border-2 mt-0.5 flex items-center justify-center flex-shrink-0 ${conLegitCheck ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 dark:border-zinc-700'}`}>
+                  {conLegitCheck && <span className="text-[10px] font-black">✓</span>}
+                </div>
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    Expert Legit Check <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-[8px]">+3.99€</span>
+                  </h4>
+                  <p className="text-[9px] text-gray-500 dark:text-gray-400 font-bold mt-1">Verificación física de autenticidad en oficinas antes del envío.</p>
+                </div>
               </div>
 
               <div className="flex justify-between items-end border-t border-gray-200 dark:border-zinc-800 pt-6 mb-8">

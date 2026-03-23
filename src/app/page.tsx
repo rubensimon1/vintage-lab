@@ -17,6 +17,7 @@ export default function Home() {
   const [tallaActiva, setTallaActiva] = useState('Todas');
   const [busqueda, setBusqueda] = useState('');
   const [precioMax, setPrecioMax] = useState(2000);
+  const [isPro, setIsPro] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +27,9 @@ export default function Home() {
       
       const cesta = JSON.parse(localStorage.getItem('cesta') || '[]');
       setCantidadCesta(cesta.length);
+
+      const proStatus = localStorage.getItem('vintage_lab_pro') === 'true';
+      setIsPro(proStatus);
 
       const { data } = await supabase
         .from('productos')
@@ -101,8 +105,20 @@ export default function Home() {
           <div className="flex items-center gap-2 md:gap-4">
             <ThemeToggle />
 
-            <Link href="/favoritos" className="p-2 md:p-3 bg-zinc-100 dark:bg-zinc-900 rounded-full hover:scale-105 transition-transform">
+            <Link href="/favoritos" className="p-2 md:p-3 bg-zinc-100 dark:bg-zinc-900 rounded-full hover:scale-105 transition-transform" title="Favoritos">
               <span className="text-base md:text-lg">❤️</span>
+            </Link>
+
+            <Link href="/comunidad" className="p-2 md:p-3 bg-black dark:bg-white text-white dark:text-black rounded-full hover:scale-105 transition-transform shadow-xl flex items-center justify-center font-black uppercase text-[10px] px-4 md:px-5" title="Comunidad de Outfits">
+              Comunidad 📸
+            </Link>
+
+            <Link href="/calendario" className="p-2 md:p-3 bg-purple-600 dark:bg-purple-500 text-white rounded-full hover:scale-105 transition-transform shadow-xl flex items-center justify-center font-black uppercase text-[10px] px-4 md:px-5" title="Drop Calendar & Raffles">
+              Calendario 🗓️
+            </Link>
+
+            <Link href="/showcase" className="p-2 md:p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg shadow-pink-500/30 hover:scale-105 transition-transform flex items-center justify-center animate-pulse" title="Feed Vertical (Showcase)">
+              <span className="text-base md:text-lg text-white">✨</span>
             </Link>
 
             <Link href="/cesta" className="relative p-2 md:p-3 bg-zinc-100 dark:bg-zinc-900 rounded-full hover:scale-105 transition-transform">
@@ -116,6 +132,16 @@ export default function Home() {
 
             {usuario ? (
               <div className="flex items-center gap-2 md:gap-4 border-l border-gray-100 dark:border-zinc-800 pl-2 md:pl-4 ml-1 md:ml-2">
+                {isPro ? (
+                  <Link href="/pro" className="group flex items-center gap-1 bg-gradient-to-r from-purple-900 to-black text-white px-3 py-2 rounded-full border border-purple-500/30 shadow-lg hover:scale-105 transition">
+                    <span className="text-xs group-hover:rotate-12 transition">💎</span> 
+                    <span className="text-[9px] font-black uppercase tracking-widest text-purple-300">PRO</span>
+                  </Link>
+                ) : (
+                  <Link href="/pro" className="text-[9px] font-black bg-purple-600 text-white px-3 py-2 rounded-full uppercase tracking-widest hover:scale-105 transition shadow-lg shadow-purple-500/20">
+                    Hacerte PRO ✨
+                  </Link>
+                )}
                 <Link href="/dashboard" className="text-[9px] md:text-[10px] font-black bg-black dark:bg-white text-white dark:text-black px-3 py-2 md:px-5 md:py-2.5 rounded-full whitespace-nowrap hover:opacity-80 transition">
                   PANEL
                 </Link>
@@ -124,9 +150,14 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <Link href="/login" className="text-[9px] md:text-[10px] font-black bg-black dark:bg-white text-white dark:text-black px-4 py-2 md:px-6 md:py-2.5 rounded-full ml-1 md:ml-2 hover:opacity-80 transition">
-                LOGIN
-              </Link>
+              <div className="flex items-center gap-2 border-l border-gray-100 dark:border-zinc-800 pl-2">
+                <Link href="/pro" className="text-[9px] font-black text-purple-600 hover:text-purple-500 uppercase tracking-widest hidden md:block">
+                  Club VIP
+                </Link>
+                <Link href="/login" className="text-[9px] md:text-[10px] font-black bg-black dark:bg-white text-white dark:text-black px-4 py-2 md:px-6 md:py-2.5 rounded-full hover:opacity-80 transition">
+                  LOGIN
+                </Link>
+              </div>
             )}
           </div>
         </div>

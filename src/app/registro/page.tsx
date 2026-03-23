@@ -50,41 +50,48 @@ export default function PaginaRegistro() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
-        <h1 className="text-2xl font-bold text-center mb-2 text-black">Nueva Cuenta</h1>
-        <p className="text-gray-500 text-center mb-8 text-sm">Empieza a vender tus productos hoy mismo</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8f8f8] dark:bg-[#070707] p-4 transition-colors duration-500">
+      <div className="bg-white dark:bg-[#0a0a0a] p-10 rounded-[3rem] shadow-2xl shadow-black/5 dark:shadow-white/5 w-full max-w-md border border-gray-100 dark:border-zinc-800 relative overflow-hidden">
+        {/* Adorno visual */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+
+        <Link href="/" className="text-2xl font-black mb-2 text-center text-black dark:text-white block italic tracking-tighter uppercase mb-2 hover:opacity-70 transition">
+          Vintage<span className="text-blue-600">.</span>Lab
+        </Link>
+        <p className="text-center text-gray-400 dark:text-gray-500 font-bold mb-8 text-[10px] uppercase tracking-widest">
+          Aplica como nuevo Vendedor
+        </p>
         
-        <form onSubmit={manejarRegistro} className="space-y-4">
+        <form onSubmit={manejarRegistro} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">Nombre Completo</label>
+            <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1 tracking-widest">Nombre Completo</label>
             <input 
               type="text" 
-              placeholder="Juan Pérez"
+              placeholder="Ej: Marc Seller"
               required
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl outline-none focus:ring-2 focus:ring-black dark:focus:ring-white font-bold text-black dark:text-white placeholder:text-gray-300 dark:placeholder:text-zinc-600 transition-all shadow-sm"
               onChange={(e) => setNombre(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">Email</label>
+            <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1 tracking-widest">Email Comercial</label>
             <input 
               type="email" 
-              placeholder="tu@email.com"
+              placeholder="hype@store.com"
               required
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl outline-none focus:ring-2 focus:ring-black dark:focus:ring-white font-bold text-black dark:text-white placeholder:text-gray-300 dark:placeholder:text-zinc-600 transition-all shadow-sm"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">Contraseña</label>
+            <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase mb-2 ml-1 tracking-widest">Contraseña Segura</label>
             <input 
               type="password" 
               placeholder="Mínimo 6 caracteres"
               required
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl outline-none focus:ring-2 focus:ring-black dark:focus:ring-white font-bold text-black dark:text-white placeholder:text-gray-300 dark:placeholder:text-zinc-600 transition-all shadow-sm"
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
@@ -92,16 +99,19 @@ export default function PaginaRegistro() {
           <button 
             type="submit"
             disabled={cargando}
-            className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-50 mt-4"
+            className="w-full bg-black dark:bg-white text-white dark:text-black py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.02] active:scale-95 transition disabled:opacity-50 mt-4"
           >
-            {cargando ? 'Creando cuenta...' : 'Registrarse'}
+            {cargando ? 'Procesando...' : 'Aplicar ahora'}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <Link href="/login" className="text-gray-600 text-sm hover:underline">
-            ¿Ya tienes cuenta? <span className="text-blue-600 font-bold">Inicia sesión</span>
-          </Link>
+        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-zinc-800 text-center">
+          <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+            ¿Ya eres miembro?{' '}
+            <Link href="/login" className="text-black dark:text-white font-black hover:opacity-70 transition ml-1">
+              Entrar
+            </Link>
+          </p>
         </div>
       </div>
     </div>
