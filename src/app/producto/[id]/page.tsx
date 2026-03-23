@@ -84,7 +84,8 @@ export default function DetalleProducto() {
       nombre: producto.nombre,
       precio: producto.precio,
       imagen: producto.imagen_url,
-      tienda: producto.vendedores?.nombre_tienda
+      tienda: producto.vendedores?.nombre_tienda,
+      id_vendedor: producto.vendedores?.id_usuario
     }];
 
     localStorage.setItem('cesta', JSON.stringify(nuevaCesta));

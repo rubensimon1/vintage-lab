@@ -124,6 +124,15 @@ export default function TikTokShowcase() {
     setVideos(nuevosVideos);
 
     await supabase.from('videos_showcase').update({ likes: nuevosLikes }).eq('id', id);
+
+    // 🔥 NOTIFICACIÓN DE LIKE AL CREADOR
+    if (video.id_usuario !== usuario.id) {
+       await supabase.from('notificaciones').insert([{
+         id_usuario: video.id_usuario,
+         mensaje: `❤️ A alguien le ha gustado tu vídeo del Showcase.`,
+         tipo: 'like'
+       }]);
+    }
   };
 
   const abrirComentarios = async (id: string) => {
@@ -147,6 +156,16 @@ export default function TikTokShowcase() {
       id_usuario: usuario.id,
       texto: texto
     }]);
+
+    // 🔥 NOTIFICACIÓN DE COMENTARIO AL CREADOR
+    const { data: videoData } = await supabase.from('videos_showcase').select('id_usuario').eq('id', comentariosActivos).single();
+    if (videoData && videoData.id_usuario !== usuario.id) {
+       await supabase.from('notificaciones').insert([{
+          id_usuario: videoData.id_usuario,
+          mensaje: `💬 Han comentado en tu Showcase: "${texto.substring(0, 30)}${texto.length > 30 ? '...' : ''}"`,
+          tipo: 'comentario'
+       }]);
+    }
   };
 
   if (cargando) {

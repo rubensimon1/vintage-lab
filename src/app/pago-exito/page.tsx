@@ -52,6 +52,19 @@ export default function PagoExito() {
           }));
 
           await supabase.from('pedido_items').insert(itemsAInsertar);
+
+          // 5.5 🔥 NOTIFICAR VENDEDORES
+          const notificaciones = cesta
+            .filter((item: any) => item.id_vendedor)
+            .map((item: any) => ({
+              id_usuario: item.id_vendedor,
+              mensaje: `💸 ¡Has vendido: ${item.nombre}! Revisa tus pedidos.`,
+              tipo: 'venta'
+            }));
+
+          if (notificaciones.length > 0) {
+            await supabase.from('notificaciones').insert(notificaciones);
+          }
         }
       }
 

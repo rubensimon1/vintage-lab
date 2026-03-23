@@ -171,6 +171,16 @@ export default function Dashboard() {
       .eq('id', idPedido);
 
     if (!error) {
+      // 🔥 Notificar al comprador del cambio de estado
+      const { data: pedidoData } = await supabase.from('pedidos').select('id_usuario').eq('id', idPedido).single();
+      if (pedidoData) {
+        await supabase.from('notificaciones').insert([{
+           id_usuario: pedidoData.id_usuario,
+           mensaje: `📦 Tu pedido #${idPedido.substring(0,8)} ahora está: ${nuevoEstado}`,
+           tipo: 'envio'
+        }]);
+      }
+
       alert(`✅ Actualizado`);
       cargarDatos();
     }
