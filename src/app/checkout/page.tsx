@@ -8,9 +8,15 @@ import ThemeToggle from '@/componentes/ThemeToggle';
 
 export default function Checkout() {
   const [items, setItems] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
   const [completado, setCompletado] = useState(false);
   const [cargando, setCargando] = useState(false);
+  
+  // --- CUPONES ---
+  const [codigoCupon, setCodigoCupon] = useState('');
+  const [cuponAplicado, setCuponAplicado] = useState<any>(null);
+  const [cargandoCupon, setCargandoCupon] = useState(false);
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -20,59 +26,70 @@ export default function Checkout() {
     }
     setItems(cestaGuardada);
     const suma = cestaGuardada.reduce((acc: number, item: any) => acc + Number(item.precio), 0);
-    setTotal(suma);
+    setSubtotal(suma);
   }, [router, completado]);
+
+  const aplicarCupon = async () => {
+    if (!codigoCupon.trim()) return;
+    setCargandoCupon(true);
+    
+    const { data: cupon, error } = await supabase
+      .from('cupones')
+      .select('*')
+      .eq('codigo', codigoCupon.toUpperCase().trim())
+      .single();
+      
+    if (error || !cupon || !cupon.activo || cupon.usos >= cupon.max_usos) {
+      alert('Cupón no válido, inactivo o sin usos restantes.');
+      setCuponAplicado(null);
+    } else {
+      setCuponAplicado(cupon);
+      setCodigoCupon('');
+    }
+    setCargandoCupon(false);
+  };
+
+  const descuentoMonto = cuponAplicado ? (subtotal * (cuponAplicado.descuento / 100)) : 0;
+  const totalFinal = subtotal - descuentoMonto;
 
   const finalizarCompra = async (e: React.FormEvent) => {
     e.preventDefault();
     setCargando(true);
 
     try {
-      // 1. Obtener el usuario actual
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Recogemos los datos del formulario (Nombre, Apellidos, Direccion)
-      const form = e.target as HTMLFormElement;
-      const nombreCompleto = `${(form[0] as HTMLInputElement).value} ${(form[1] as HTMLInputElement).value}`;
-      const direccionEnvio = (form[3] as HTMLInputElement).value;
+      // Guardamos el cupón para procesar los usos a la vuelta del pago
+      if (cuponAplicado) {
+        localStorage.setItem('cuponAplicado', JSON.stringify(cuponAplicado));
+      } else {
+        localStorage.removeItem('cuponAplicado');
+      }
 
-      // 2. Insertar el Pedido principal
-      const { data: pedido, error: errorPedido } = await supabase
-        .from('pedidos')
-        .insert({
-          id_usuario: user?.id || null, 
-          total: total,
-          nombre_cliente: nombreCompleto,
-          direccion: direccionEnvio,
-          estado: 'completado'
-        })
-        .select()
-        .single();
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items, // que es la cesta
+          email: user?.email || '', 
+          cuponId: cuponAplicado?.id,
+          descuento: cuponAplicado ? cuponAplicado.descuento : 0
+        }),
+      });
 
-      if (errorPedido) throw errorPedido;
+      const data = await response.json();
 
-      // 3. Insertar los items del pedido (el detalle)
-      const itemsParaInsertar = items.map(item => ({
-        id_pedido: pedido.id,
-        id_producto: item.id,
-        nombre_producto: item.nombre,
-        precio: item.precio
-      }));
-
-      const { error: errorItems } = await supabase
-        .from('pedido_items')
-        .insert(itemsParaInsertar);
-
-      if (errorItems) throw errorItems;
-
-      // 4. Éxito: Limpiar LocalStorage y mostrar pantalla final
-      localStorage.removeItem('cesta');
-      setCompletado(true);
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("Error de Stripe:", data.error);
+        alert("Hubo un problema al iniciar el pago. Revisa la consola.");
+        setCargando(false);
+      }
 
     } catch (error: any) {
       console.error("Error en la compra:", error);
-      alert("Hubo un fallo al procesar el pedido. Inténtalo de nuevo.");
-    } finally {
+      alert("Hubo un fallo al procesar el pedido con Stripe. Inténtalo de nuevo.");
       setCargando(false);
     }
   };
@@ -122,16 +139,16 @@ export default function Checkout() {
 
             <button 
               disabled={cargando}
-              className="w-full bg-black dark:bg-white text-white dark:text-black py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition disabled:opacity-50"
+              className="w-full bg-black dark:bg-white text-white dark:text-black py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition disabled:opacity-50 mt-6"
             >
-              {cargando ? 'Guardando Pedido...' : `Pagar ${total} €`}
+              {cargando ? 'Guardando Pedido...' : `Confirmar y Pagar ${totalFinal.toFixed(2)} €`}
             </button>
           </form>
         </div>
 
         <div className="bg-gray-50 dark:bg-zinc-900/50 p-10 rounded-[3rem] h-fit sticky top-32">
           <h3 className="text-xl font-black mb-8">Resumen</h3>
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4 mb-6">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-500">{item.nombre}</span>
@@ -139,9 +156,41 @@ export default function Checkout() {
               </div>
             ))}
           </div>
+
+          <div className="space-y-4 mb-8 pt-4 border-t border-gray-200 dark:border-zinc-800 text-sm font-bold text-gray-500">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span className="text-black dark:text-white">{subtotal.toFixed(2)}€</span>
+            </div>
+            {cuponAplicado && (
+              <div className="flex justify-between text-green-500">
+                <span>Descuento ({cuponAplicado.codigo} {cuponAplicado.descuento}%)</span>
+                <span>-{descuentoMonto.toFixed(2)}€</span>
+              </div>
+            )}
+          </div>
+
+          {/* INPUT DE CUPÓN */}
+          <div className="flex gap-2 mb-8">
+            <input 
+              type="text" 
+              value={codigoCupon}
+              onChange={(e) => setCodigoCupon(e.target.value.toUpperCase())}
+              placeholder="CÓDIGO DE CUPÓN" 
+              className="flex-1 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-blue-500 transition"
+            />
+            <button 
+              onClick={(e) => { e.preventDefault(); aplicarCupon(); }}
+              disabled={cargandoCupon || !codigoCupon}
+              className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 transition disabled:opacity-50"
+            >
+              {cargandoCupon ? '...' : 'Aplicar'}
+            </button>
+          </div>
+
           <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 flex justify-between items-end">
             <span className="text-[10px] font-black uppercase tracking-widest">Total Final</span>
-            <span className="text-4xl font-black">{total} €</span>
+            <span className="text-4xl font-black">{totalFinal.toFixed(2)} €</span>
           </div>
         </div>
       </main>

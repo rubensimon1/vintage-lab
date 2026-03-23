@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: Request) {
   try {
-    const { items, email } = await request.json();
+    const { items, email, descuento } = await request.json();
 
     // 1. Transformamos los items de tu cesta al formato que exige Stripe
     const lineItems = items.map((item: any) => ({
@@ -18,25 +18,39 @@ export async function POST(request: Request) {
           name: item.nombre,
           images: item.imagen ? [item.imagen] : [],
         },
-        // Stripe trabaja en céntimos, así que multiplicamos por 100
+        // Stripe trabaja en céntimos
         unit_amount: Math.round(item.precio * 100), 
       },
       quantity: 1, // En tu marketplace cada item es único
     }));
 
-    // Detectamos la URL base de tu web (localhost en tu PC, o tu dominio si lo subes a Vercel)
+    // Detectamos la URL base de tu web
     const origin = request.headers.get('origin') || 'http://localhost:3000';
 
-    // 2. Creamos la sesión de pago segura en los servidores de Stripe
-    const session = await stripe.checkout.sessions.create({
+    // 2. Configuramos la sesión
+    const sessionConfig: any = {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      // ¿A dónde volvemos si paga bien o si cancela?
       success_url: `${origin}/pago-exito`,
       cancel_url: `${origin}/cesta`,
-      customer_email: email, // Rellena el email automáticamente si el usuario está logueado
-    });
+    };
+
+    if (email) {
+      sessionConfig.customer_email = email;
+    }
+
+    // 3. 🔥 ¡El truco maestro! Si hay un descuento válido, creamos un cupón de Stripe al vuelo
+    if (descuento && descuento > 0) {
+      const stripeCoupon = await stripe.coupons.create({
+        percent_off: descuento,
+        duration: 'once',
+      });
+      sessionConfig.discounts = [{ coupon: stripeCoupon.id }];
+    }
+
+    // 4. Creamos la sesión de pago segura en los servidores de Stripe
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     // Devolvemos la URL generada por Stripe para redirigir al usuario
     return NextResponse.json({ url: session.url });

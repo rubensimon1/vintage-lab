@@ -14,8 +14,9 @@ export default function Home() {
   const [usuario, setUsuario] = useState<any>(null);
   const [cantidadCesta, setCantidadCesta] = useState(0);
   const [categoriaActiva, setCategoriaActiva] = useState('Todo');
-  const [tallaActiva, setTallaActiva] = useState('Todas'); // 🔥 NUEVO ESTADO
+  const [tallaActiva, setTallaActiva] = useState('Todas');
   const [busqueda, setBusqueda] = useState('');
+  const [precioMax, setPrecioMax] = useState(2000);
   const router = useRouter();
 
   useEffect(() => {
@@ -57,8 +58,20 @@ export default function Home() {
       resultado = resultado.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
     }
 
+    resultado = resultado.filter(p => Number(p.precio) <= precioMax);
+
+    // Destacados primero
+    resultado.sort((a, b) => (b.destacado ? 1 : 0) - (a.destacado ? 1 : 0));
+
     setProductosFiltrados(resultado);
-  }, [categoriaActiva, tallaActiva, busqueda, productos]);
+  }, [categoriaActiva, tallaActiva, busqueda, productos, precioMax]);
+
+  // Resetear talla cuando cambia la categoría (si ya no es Sneakers)
+  useEffect(() => {
+    if (categoriaActiva !== 'Todo' && categoriaActiva !== 'Sneakers') {
+      setTallaActiva('Todas');
+    }
+  }, [categoriaActiva]);
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -152,11 +165,12 @@ export default function Home() {
                 <span className="absolute right-5 top-1/2 -translate-y-1/2 opacity-30 text-xs">🔍</span>
               </div>
 
-              {/* 🔥 TALLAS (Scroll horizontal en móvil) */}
-              <div className="w-full md:w-auto flex flex-col gap-2">
-                <span className="text-[7px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2 md:hidden">Tallas</span>
+              {/* TALLAS (Solo visible para Sneakers o Todo) */}
+              {(categoriaActiva === 'Todo' || categoriaActiva === 'Sneakers') && (
+              <div className="w-full md:w-auto flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <span className="text-[7px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2 md:hidden">Tallas Sneakers</span>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0 px-1">
-                  {['Todas', '38', '39', '40', '41', '42', '43', '44', '45', 'S', 'M', 'L', 'XL'].map((t) => (
+                  {['Todas', '38', '39', '40', '41', '42', '43', '44', '45'].map((t) => (
                     <button 
                       key={t} 
                       onClick={() => setTallaActiva(t)}
@@ -171,9 +185,10 @@ export default function Home() {
                   ))}
                 </div>
               </div>
+              )}
             </div>
 
-            {/* FILA 2: CATEGORÍAS (Scroll horizontal siempre que no quepan) */}
+            {/* FILA 2: CATEGORÍAS */}
             <div className="border-t border-gray-100 dark:border-zinc-900 pt-4">
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                 {['Todo', 'Sneakers', 'Streetwear', 'Accesorios', 'Vintage'].map((cat) => (
@@ -189,6 +204,23 @@ export default function Home() {
                     {cat}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* FILA 3: RANGO DE PRECIO */}
+            <div className="border-t border-gray-100 dark:border-zinc-900 pt-4">
+              <div className="flex items-center gap-4">
+                <span className="text-[8px] font-black uppercase text-gray-400 tracking-widest flex-shrink-0">Precio Máx</span>
+                <input
+                  type="range"
+                  min={10}
+                  max={2000}
+                  step={10}
+                  value={precioMax}
+                  onChange={(e) => setPrecioMax(Number(e.target.value))}
+                  className="flex-1 h-2 bg-gray-200 dark:bg-zinc-800 rounded-full appearance-none cursor-pointer accent-blue-600"
+                />
+                <span className="text-sm font-black text-blue-600 min-w-[60px] text-right">{precioMax}€</span>
               </div>
             </div>
 
@@ -214,7 +246,14 @@ export default function Home() {
                   <Link href={`/producto/${prod.id}`}>
                     <img src={prod.imagen_url || '/placeholder.png'} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={prod.nombre} />
                     
-                    {/* BADGE TALLA (FRONT) */}
+                    {/* BADGE DESTACADO */}
+                    {prod.destacado && (
+                      <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest z-10 shadow-lg shadow-amber-500/30 animate-pulse">
+                        🔥 HOT
+                      </div>
+                    )}
+
+                    {/* BADGE TALLA */}
                     <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md text-white px-2 py-1 rounded-lg text-[8px] font-black uppercase z-10">
                       T: {prod.talla || '—'}
                     </div>

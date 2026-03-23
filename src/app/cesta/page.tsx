@@ -7,8 +7,13 @@ import { supabase } from '@/bibliotecas/supabase';
 
 export default function Cesta() {
   const [cesta, setCesta] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
   const [cargandoPago, setCargandoPago] = useState(false);
+
+  // --- CUPONES ---
+  const [codigoCupon, setCodigoCupon] = useState('');
+  const [cuponAplicado, setCuponAplicado] = useState<any>(null);
+  const [cargandoCupon, setCargandoCupon] = useState(false);
 
   useEffect(() => {
     // Cargar la cesta guardada en el navegador
@@ -17,7 +22,7 @@ export default function Cesta() {
 
     // Calcular el total
     const suma = cestaGuardada.reduce((acc: number, item: any) => acc + Number(item.precio), 0);
-    setTotal(suma);
+    setSubtotal(suma);
   }, []);
 
   const eliminarItem = (id: string) => {
@@ -26,8 +31,33 @@ export default function Cesta() {
     localStorage.setItem('cesta', JSON.stringify(nuevaCesta));
     
     const nuevaSuma = nuevaCesta.reduce((acc: number, item: any) => acc + Number(item.precio), 0);
-    setTotal(nuevaSuma);
+    setSubtotal(nuevaSuma);
   };
+
+  const aplicarCupon = async () => {
+    if (!codigoCupon.trim()) return;
+    setCargandoCupon(true);
+    
+    const { data: cupon, error } = await supabase
+      .from('cupones')
+      .select('*')
+      .eq('codigo', codigoCupon.toUpperCase().trim())
+      .single();
+      
+    if (error || !cupon || !cupon.activo || cupon.usos >= cupon.max_usos) {
+      alert('Cupón no válido, inactivo o sin usos restantes.');
+      setCuponAplicado(null);
+      localStorage.removeItem('cuponAplicado');
+    } else {
+      setCuponAplicado(cupon);
+      localStorage.setItem('cuponAplicado', JSON.stringify(cupon));
+      setCodigoCupon('');
+    }
+    setCargandoCupon(false);
+  };
+
+  const descuentoMonto = cuponAplicado ? (subtotal * (cuponAplicado.descuento / 100)) : 0;
+  const totalFinal = subtotal - descuentoMonto;
 
   // --- 🔥 CONEXIÓN CON STRIPE ---
   const procesarPagoStripe = async () => {
@@ -35,22 +65,21 @@ export default function Cesta() {
     setCargandoPago(true);
 
     try {
-      // 1. Vemos si el usuario está logueado para autocompletar su email en Stripe
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 2. Llamamos a nuestra API de Checkout
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cesta,
-          email: user?.email || '', // Pasamos el email si existe
+          email: user?.email || '', 
+          cuponId: cuponAplicado?.id,
+          descuento: cuponAplicado ? cuponAplicado.descuento : 0
         }),
       });
 
       const data = await response.json();
 
-      // 3. Si Stripe nos devuelve la URL segura, redirigimos al usuario
       if (data.url) {
         window.location.href = data.url;
       } else {
@@ -120,11 +149,17 @@ export default function Cesta() {
             <div className="bg-gray-50 dark:bg-[#111] p-8 md:p-10 rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 h-fit sticky top-32">
               <h2 className="text-lg font-black uppercase tracking-widest mb-8 border-b border-gray-200 dark:border-zinc-800 pb-4">Resumen</h2>
               
-              <div className="space-y-4 mb-8 text-sm font-bold text-gray-500 dark:text-gray-400">
+              <div className="space-y-4 mb-6 text-sm font-bold text-gray-500 dark:text-gray-400">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="text-black dark:text-white">{total}€</span>
+                  <span className="text-black dark:text-white">{subtotal.toFixed(2)}€</span>
                 </div>
+                {cuponAplicado && (
+                  <div className="flex justify-between text-green-500">
+                    <span>Descuento ({cuponAplicado.codigo} {cuponAplicado.descuento}%)</span>
+                    <span>-{descuentoMonto.toFixed(2)}€</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Autenticación</span>
                   <span className="text-green-500">GRATIS</span>
@@ -135,9 +170,27 @@ export default function Cesta() {
                 </div>
               </div>
 
+              {/* INPUT DE CUPÓN */}
+              <div className="flex gap-2 mb-8">
+                <input 
+                  type="text" 
+                  value={codigoCupon}
+                  onChange={(e) => setCodigoCupon(e.target.value.toUpperCase())}
+                  placeholder="CÓDIGO DE CUPÓN" 
+                  className="flex-1 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-blue-500 transition"
+                />
+                <button 
+                  onClick={aplicarCupon}
+                  disabled={cargandoCupon || !codigoCupon}
+                  className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 transition disabled:opacity-50"
+                >
+                  {cargandoCupon ? '...' : 'Aplicar'}
+                </button>
+              </div>
+
               <div className="flex justify-between items-end border-t border-gray-200 dark:border-zinc-800 pt-6 mb-8">
                 <span className="text-[10px] font-black uppercase tracking-widest">Total</span>
-                <span className="text-5xl font-black italic tracking-tighter">{total}€</span>
+                <span className="text-5xl font-black italic tracking-tighter">{totalFinal.toFixed(2)}€</span>
               </div>
 
               {/* BOTÓN MÁGICO DE STRIPE */}

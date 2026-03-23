@@ -9,9 +9,12 @@ export default function NuevoProducto() {
   const [precio, setPrecio] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [talla, setTalla] = useState(''); // 🔥 NUEVO: Estado para la talla
+  const [talla, setTalla] = useState('');
   const [imagen, setImagen] = useState<File | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null);
+  const [imagenesExtra, setImagenesExtra] = useState<File[]>([]);
+  const [previewsExtra, setPreviewsExtra] = useState<string[]>([]);
+  const [destacado, setDestacado] = useState(false);
   const [cargando, setCargando] = useState(false);
   const router = useRouter();
 
@@ -21,6 +24,12 @@ export default function NuevoProducto() {
       setImagen(file);
       setVistaPrevia(URL.createObjectURL(file));
     }
+  };
+
+  const manejarImagenesExtra = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []).slice(0, 4);
+    setImagenesExtra(files);
+    setPreviewsExtra(files.map(f => URL.createObjectURL(f)));
   };
 
   const subirProducto = async (e: React.FormEvent) => {
@@ -59,16 +68,39 @@ export default function NuevoProducto() {
         urlImagenFinal = publicUrl;
       }
 
-      // 4. Insertar con los campos incluyendo TALLA
+      // 4. Subir imágenes extra
+      const urlsExtra: string[] = [];
+      for (const img of imagenesExtra) {
+        const ext = img.name.split('.').pop();
+        const nombreArc = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+        const rutaArc = `${vendedor.id}/${nombreArc}`;
+        const { error: upErr } = await supabase.storage.from('fotos').upload(rutaArc, img);
+        if (!upErr) {
+          const { data: { publicUrl } } = supabase.storage.from('fotos').getPublicUrl(rutaArc);
+          urlsExtra.push(publicUrl);
+        }
+      }
+
+      // 5. Insertar con los campos incluyendo TALLA, DESTACADO e IMÁGENES EXTRA
       const { error: insertError } = await supabase.from('productos').insert([{
         id_vendedor: vendedor.id,
         nombre: nombre.trim(),
         precio: parseFloat(precio),
         descripcion: descripcion.trim(),
         categoria: categoria,
-        talla: talla, // 🔥 NUEVO: Guardar talla en la DB
-        imagen_url: urlImagenFinal
+        talla: talla,
+        imagen_url: urlImagenFinal,
+        destacado: destacado,
+        imagenes_extra: urlsExtra
       }]);
+
+      // 6. Insertar precio en historial
+      if (!insertError) {
+        const { data: prodInsertado } = await supabase.from('productos').select('id').eq('nombre', nombre.trim()).order('creado_el', { ascending: false }).limit(1).single();
+        if (prodInsertado) {
+          await supabase.from('historial_precios').insert([{ id_producto: prodInsertado.id, precio: parseFloat(precio) }]);
+        }
+      }
 
       if (insertError) throw insertError;
 
@@ -171,6 +203,34 @@ export default function NuevoProducto() {
                 className="w-full p-4 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-black font-medium transition"
                 onChange={(e) => setDescripcion(e.target.value)}
               />
+            </div>
+
+            {/* IMÁGENES EXTRA PARA VERIFICACIÓN */}
+            <div>
+              <label className="block text-xs font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fotos Extra (máx. 4 — verificación)</label>
+              <input type="file" accept="image/*" multiple onChange={manejarImagenesExtra} className="w-full p-3 bg-gray-100 rounded-2xl text-sm font-medium" />
+              {previewsExtra.length > 0 && (
+                <div className="flex gap-3 mt-3">
+                  {previewsExtra.map((p, i) => (
+                    <img key={i} src={p} alt="" className="w-16 h-16 rounded-xl object-cover border-2 border-gray-200" />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* TOGGLE DESTACADO */}
+            <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-200">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest">🔥 Destacar producto</p>
+                <p className="text-[10px] text-gray-400 font-medium">Aparece primero con badge HOT</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDestacado(!destacado)}
+                className={`w-14 h-8 rounded-full transition-colors ${destacado ? 'bg-orange-500' : 'bg-gray-300'}`}
+              >
+                <div className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${destacado ? 'translate-x-7' : 'translate-x-1'}`} />
+              </button>
             </div>
           </div>
 

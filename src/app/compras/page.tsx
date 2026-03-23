@@ -86,15 +86,30 @@ export default function MisCompras() {
     
     setEnviandoResena(true);
     
-    // Obtenemos el usuario actual
     const { data: { user } } = await supabase.auth.getUser();
-    
-    // Asumimos que valoramos al vendedor del primer producto del pedido
     const idVendedor = pedidoAValorar.pedido_items[0]?.productos?.id_vendedor;
 
     if (!user || !idVendedor) {
       alert("Error al identificar al vendedor.");
       setEnviandoResena(false);
+      return;
+    }
+
+    // Comprobamos si ya existe una reseña para este pedido
+    const { data: reseñaExistente } = await supabase
+      .from('resenas')
+      .select('id')
+      .eq('id_pedido', pedidoAValorar.id)
+      .single();
+
+    if (reseñaExistente) {
+      // Ya existe: actualizamos el estado local para ocultar el botón
+      setPedidos(pedidos.map(p => p.id === pedidoAValorar.id ? { ...p, resenas: [{ id: reseñaExistente.id }] } : p));
+      setPedidoAValorar(null);
+      setComentario('');
+      setEstrellas(5);
+      setEnviandoResena(false);
+      alert("Este pedido ya ha sido valorado ✅");
       return;
     }
 
@@ -107,11 +122,10 @@ export default function MisCompras() {
     }]);
 
     if (error) {
-      alert("Ya has valorado este pedido o hubo un error.");
+      alert("Hubo un error al enviar la reseña. Inténtalo de nuevo.");
     } else {
       alert("¡Reseña publicada con éxito! ⭐");
-      // Actualizamos el estado local para que desaparezca el botón
-      setPedidos(pedidos.map(p => p.id === pedidoAValorar.id ? { ...p, resenas: [{ id: 'fake-id' }] } : p));
+      setPedidos(pedidos.map(p => p.id === pedidoAValorar.id ? { ...p, resenas: [{ id: 'new' }] } : p));
       setPedidoAValorar(null);
       setComentario('');
       setEstrellas(5);
@@ -241,12 +255,92 @@ export default function MisCompras() {
                     ))}
                   </div>
 
-                  {/* TEMPLATE OCULTO PARA PDF... */}
+                  {/* TEMPLATE OCULTO PARA PDF PROFESIONAL */}
                   <div className="absolute top-[-9999px] left-[-9999px] z-[-1] opacity-0 pointer-events-none">
-                    <div ref={(el) => { facturaRefs.current[pedido.id] = el }} style={{ width: '800px', padding: '60px', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'Arial, sans-serif' }}>
-                      {/* Contenido mínimo para que no de error el PDF */}
-                      <h1 style={{ fontSize: '30px' }}>Factura {pedido.id.substring(0,8)}</h1>
-                      <p>Total: {pedido.total}€</p>
+                    <div ref={(el) => { facturaRefs.current[pedido.id] = el }} style={{ width: '800px', padding: '0', backgroundColor: '#ffffff', color: '#000000', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+                      
+                      {/* HEADER */}
+                      <div style={{ backgroundColor: '#0a0a0a', color: '#ffffff', padding: '40px 60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h1 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '-1px', margin: 0, fontStyle: 'italic', textTransform: 'uppercase' }}>VINTAGE<span style={{ color: '#2563eb' }}>.</span>LAB</h1>
+                          <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: '#9ca3af', margin: '4px 0 0 0' }}>Marketplace Pro — Invoice</p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '10px', fontWeight: 800, color: '#60a5fa', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>Factura</p>
+                          <p style={{ fontSize: '22px', fontWeight: 900, margin: '2px 0 0 0', letterSpacing: '-0.5px' }}>#{pedido.id.substring(0,8).toUpperCase()}</p>
+                        </div>
+                      </div>
+
+                      {/* INFO SECTION */}
+                      <div style={{ padding: '40px 60px 20px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb' }}>
+                        <div>
+                          <p style={{ fontSize: '9px', fontWeight: 800, color: '#9ca3af', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 6px 0' }}>Facturar a</p>
+                          <p style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{pedido.nombre_cliente || 'Cliente'}</p>
+                          <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>{pedido.direccion || '—'}</p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '9px', fontWeight: 800, color: '#9ca3af', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 6px 0' }}>Fecha de emisión</p>
+                          <p style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
+                            {new Date(pedido.creado_el).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                          </p>
+                          <p style={{ fontSize: '9px', fontWeight: 800, color: '#9ca3af', letterSpacing: '2px', textTransform: 'uppercase', margin: '16px 0 6px 0' }}>Estado</p>
+                          <p style={{ fontSize: '12px', fontWeight: 800, color: '#22c55e', margin: 0, textTransform: 'uppercase' }}>{pedido.estado || 'Procesado'}</p>
+                        </div>
+                      </div>
+
+                      {/* TABLE */}
+                      <div style={{ padding: '30px 60px' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '2px solid #0a0a0a' }}>
+                              <th style={{ textAlign: 'left', padding: '12px 0', fontSize: '9px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', color: '#9ca3af' }}>Artículo</th>
+                              <th style={{ textAlign: 'center', padding: '12px 0', fontSize: '9px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', color: '#9ca3af' }}>Cant.</th>
+                              <th style={{ textAlign: 'right', padding: '12px 0', fontSize: '9px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', color: '#9ca3af' }}>Precio</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pedido.pedido_items.map((item: any, idx: number) => (
+                              <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                <td style={{ padding: '16px 0', fontSize: '14px', fontWeight: 600 }}>{item.productos?.nombre || 'Artículo'}</td>
+                                <td style={{ padding: '16px 0', fontSize: '14px', fontWeight: 600, textAlign: 'center' }}>1</td>
+                                <td style={{ padding: '16px 0', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{item.precio}€</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* TOTALS */}
+                      <div style={{ padding: '0 60px 40px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <div style={{ width: '280px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '13px', color: '#6b7280' }}>
+                            <span>Subtotal</span>
+                            <span style={{ fontWeight: 700, color: '#000' }}>{pedido.total}€</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '13px', color: '#6b7280' }}>
+                            <span>Envío Express</span>
+                            <span style={{ fontWeight: 700, color: '#22c55e' }}>GRATIS</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '13px', color: '#6b7280' }}>
+                            <span>Autenticación</span>
+                            <span style={{ fontWeight: 700, color: '#22c55e' }}>GRATIS</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 0 0', borderTop: '2px solid #0a0a0a', marginTop: '8px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px' }}>Total</span>
+                            <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-1px' }}>{pedido.total}€</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* FOOTER */}
+                      <div style={{ backgroundColor: '#f9fafb', padding: '30px 60px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <p style={{ fontSize: '9px', fontWeight: 800, color: '#9ca3af', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>Vintage Lab Systems © 2026</p>
+                          <p style={{ fontSize: '9px', color: '#d1d5db', margin: '4px 0 0 0' }}>Documento generado automáticamente. No requiere firma.</p>
+                        </div>
+                        <p style={{ fontSize: '9px', fontWeight: 800, color: '#2563eb', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>Pago verificado por Stripe</p>
+                      </div>
+
                     </div>
                   </div>
 

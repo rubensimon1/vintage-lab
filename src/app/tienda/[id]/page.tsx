@@ -13,6 +13,9 @@ export default function PerfilTienda() {
   const [resenas, setResenas] = useState<any[]>([]);
   const [notaMedia, setNotaMedia] = useState(0);
   const [cargando, setCargando] = useState(true);
+  const [seguidores, setSeguidores] = useState(0);
+  const [siguiendo, setSiguiendo] = useState(false);
+  const [usuarioId, setUsuarioId] = useState<string | null>(null);
 
   useEffect(() => {
     async function cargarTienda() {
@@ -51,12 +54,54 @@ export default function PerfilTienda() {
           const suma = datosResenas.reduce((acc, curr) => acc + curr.puntuacion, 0);
           setNotaMedia(suma / datosResenas.length);
         }
+
+        // 4. Seguidores
+        const { count } = await supabase
+          .from('seguidores')
+          .select('*', { count: 'exact', head: true })
+          .eq('id_vendedor', id);
+        setSeguidores(count || 0);
+
+        // 5. Check si el usuario actual sigue
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUsuarioId(user.id);
+          const { data: yaSigue } = await supabase
+            .from('seguidores')
+            .select('id')
+            .eq('id_seguidor', user.id)
+            .eq('id_vendedor', id)
+            .single();
+          setSiguiendo(!!yaSigue);
+        }
       }
       setCargando(false);
     }
 
     cargarTienda();
   }, [id]);
+
+  const toggleSeguir = async () => {
+    if (!usuarioId) return alert('Inicia sesión para seguir vendedores');
+    if (siguiendo) {
+      await supabase.from('seguidores').delete().eq('id_seguidor', usuarioId).eq('id_vendedor', id);
+      setSiguiendo(false);
+      setSeguidores(prev => prev - 1);
+    } else {
+      await supabase.from('seguidores').insert([{ id_seguidor: usuarioId, id_vendedor: id }]);
+      setSiguiendo(true);
+      setSeguidores(prev => prev + 1);
+      if (tienda?.id_usuario) {
+        await supabase.from('notificaciones').insert([{
+          id_usuario: tienda.id_usuario,
+          tipo: 'seguidor',
+          titulo: 'Nuevo seguidor',
+          mensaje: 'Alguien ha empezado a seguir tu tienda',
+          enlace: `/tienda/${id}`
+        }]);
+      }
+    }
+  };
 
   if (cargando) {
     return (
@@ -110,18 +155,19 @@ export default function PerfilTienda() {
               <span className="text-6xl md:text-8xl font-black uppercase italic text-blue-600">{inicial}</span>
             </div>
 
-            <div className="mb-2 md:mb-6">
+            <div className="mb-2 md:mb-6 flex-1">
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
                 <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">
                   Vendedor Verificado ✓
                 </span>
-                
-                {/* 🔥 ESTRELLITAS EN LA CABECERA */}
                 {resenas.length > 0 && (
                   <span className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1 border border-yellow-200 dark:border-yellow-900/50">
                     ⭐ {notaMedia.toFixed(1)} <span className="text-yellow-500/50">({resenas.length})</span>
                   </span>
                 )}
+                <span className="bg-gray-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-gray-500">
+                  {seguidores} {seguidores === 1 ? 'seguidor' : 'seguidores'}
+                </span>
               </div>
               
               <h1 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase leading-none drop-shadow-lg">
@@ -131,6 +177,18 @@ export default function PerfilTienda() {
                 {productos.length} Drops Activos en el mercado
               </p>
             </div>
+
+            {/* BOTÓN SEGUIR */}
+            <button
+              onClick={toggleSeguir}
+              className={`px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all mb-6 ${
+                siguiendo 
+                  ? 'bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20' 
+                  : 'bg-blue-600 text-white shadow-xl shadow-blue-500/20 hover:scale-105'
+              }`}
+            >
+              {siguiendo ? '✓ Siguiendo' : '+ Seguir'}
+            </button>
           </div>
         </div>
 

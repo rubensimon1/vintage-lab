@@ -55,6 +55,14 @@ export default function PagoExito() {
 
       // 6. Vaciamos la cesta porque ya está pagado
       localStorage.removeItem('cesta');
+
+      // 7. Usos de Cupón
+      const cuponGuardado = localStorage.getItem('cuponAplicado');
+      if (cuponGuardado) {
+        const cuponAplicado = JSON.parse(cuponGuardado);
+        await supabase.from('cupones').update({ usos: cuponAplicado.usos + 1 }).eq('id', cuponAplicado.id);
+        localStorage.removeItem('cuponAplicado');
+      }
       
       // Añadimos un pequeño retraso para que el usuario vea que "estamos trabajando"
       setTimeout(() => {
